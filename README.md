@@ -33,8 +33,17 @@ In the app there is an option to view the weather forecast by hour with a view o
 
 Weather Forecast utilizes the latest technology to provide the most accurate weather forecast. With a simple interface and user-friendly features, you'll always be prepared for any weather condition.
 
-## Download Weather Forecast now and get access to the most accurate weather forecast for your area!
-
 ## Download From Google Play
 
+### Download Weather Forecast now and get access to the most accurate weather forecast for your area!
+
 [**🔗Click here!**](https://play.google.com/store/apps/details?id=com.fairy.weather)
+
+<p align="center">
+  <img src="./assets/preview-1.png">
+  <img src="./assets/preview-2.png">
+  <img src="./assets/preview-3.png">
+  <img src="./assets/preview-4.png">
+  <img src="./assets/preview-5.png">
+  <img src="./assets/preview-6.png">
+</p>

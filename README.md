@@ -44,8 +44,8 @@ Download Weather Forecast now and get access to the most accurate weather foreca
 [**🔗Click here!**](https://play.google.com/store/apps/details?id=com.fairy.weather)
 
 <p align="center">
-  <img src="./assets/preview-1.png" style="max-width: 200px;">
-  <img src="./assets/preview-2.png" style="max-width: 200px;">
-  <img src="./assets/preview-5.png" style="max-width: 200px;">
-  <img src="./assets/preview-6.png" style="max-width: 200px;">
+  <img src="./assets/preview-1.png" width="200">
+  <img src="./assets/preview-2.png" width="200">
+  <img src="./assets/preview-5.png" width="200">
+  <img src="./assets/preview-6.png" width="200">
 </p>

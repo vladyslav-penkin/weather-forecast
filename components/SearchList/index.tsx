@@ -32,6 +32,7 @@ export const SearchList: FC<Props> = memo(({ searchQuery, isFocused, setFocused,
 
   const isEmpty = citiesData?.list.length === 0;
   const isFound = !isError && !isEmpty;
+
   const addNewLocation = async (cityId: number, lan: number, lon: number) => {
     const newLocation = await getWeatherData(cityId, i18n.language, degree ? UNITS_IMPERIAL : UNITS_METRIC, lan, lon);
     setWeatherDataList(prev => [...prev, newLocation]);
@@ -82,7 +83,7 @@ export const SearchList: FC<Props> = memo(({ searchQuery, isFocused, setFocused,
               currentIndex={index}
             />
           )}
-          keyExtractor={(item: SearchForecastListItem) => String(item.dt)}
+          keyExtractor={(item: SearchForecastListItem) => String(item.id)}
         />
       )}
     </>

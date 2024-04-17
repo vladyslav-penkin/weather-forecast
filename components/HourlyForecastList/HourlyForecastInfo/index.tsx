@@ -6,7 +6,7 @@ import { SecondaryText } from '../../SecondaryText';
 import { PrimaryText } from '../../PrimaryText';
 import { WeatherIcon } from '../../WeatherIcon';
 import { ForecastListItem } from '../../../types/ForecastListItem';
-import { getCurrentTime, monthOfYear } from '../../../units/helpers';
+import { formatTime, monthOfYear } from '../../../units/helpers';
 
 type Props = {
   weatherInfo: ForecastListItem;
@@ -16,12 +16,13 @@ type Props = {
 
 export const HourlyForecastInfo: FC<Props> = memo(({ weatherInfo: { dt_txt, weather, main: { temp, humidity } }, isDay, nearestData }) => {
   const { t } = useTranslation();
-  const currentTime = getCurrentTime(dt_txt);
-  const nearestTime = getCurrentTime(nearestData);
+  const currentDateTime = new Date(dt_txt);
+  const nearestTime = formatTime(new Date(nearestData));
   const currentDate = new Date(dt_txt).getDate();
   const nearestDate = new Date(nearestData).getDate();
-  const isNewDay = ['00:00', '12:00 AM'].includes(currentTime); 
-  const isNow = currentTime === nearestTime && currentDate === nearestDate;
+  const formatedTime = formatTime(currentDateTime);
+  const isNewDay = formatedTime === '00:00'; 
+  const isNow = formatedTime === nearestTime && currentDate === nearestDate;
   return (
     <HourlyForecastInfoContainer>
       <View style={{ minHeight: 20 }}>
@@ -35,7 +36,7 @@ export const HourlyForecastInfo: FC<Props> = memo(({ weatherInfo: { dt_txt, weat
       </View>
       <WeatherIcon iconId={weather[0].id} isDay={isDay} humidity={humidity} />
       <ForecastContainer>
-        <SecondaryText title={isNow ? t('currentHour') : currentTime} size={13} />
+        <SecondaryText title={isNow ? t('currentHour') : formatedTime} size={13} />
         <View style={{ paddingTop: 5 }}>
           <PrimaryText title={`${Math.round(temp)}°`} size={16} />
         </View>

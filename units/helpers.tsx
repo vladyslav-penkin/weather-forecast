@@ -13,6 +13,7 @@ import SunnyCloudy from '../assets/static/sunnyCloudy.svg';
 import Sunrise from '../assets/static/sunrise.svg';
 import Sunset from '../assets/static/sunset.svg';
 import Daylight from '../assets/static/daylight.svg';
+import { differenceInMinutes, format, isWithinInterval } from 'date-fns';
 
 type IconComponentProps = {
   style?: object;
@@ -45,7 +46,7 @@ export const getDailyList = (weatherData: Forecast): DailyList => {
   const list = weatherData?.list ?? [];
   
   return list.reduce((acc: DailyList, curr: ForecastListItem) => {
-    const day = `${new Date(curr.dt_txt).getFullYear()}-${new Date(curr.dt_txt).getMonth() + 1}-${new Date(curr.dt_txt).getDate()}`;
+    const day = format(new Date(curr.dt_txt), 'yyyy-MM-dd');
 
     if (!acc.hasOwnProperty(day)) acc[day] = [];
     acc[day].push(curr);
@@ -57,16 +58,12 @@ export const getDailyList = (weatherData: Forecast): DailyList => {
 export const getCurrentTypeOfDay = (currentTime: string) => {
   switch (currentTime) {
     case '09:00':
-    case '9:00 AM':
       return 'morning';
     case '15:00':
-    case '3:00 PM':
       return 'afternoon';
     case '18:00':
-    case '6:00 PM':
       return 'evening';
     case '21:00':
-    case '9:00 PM':
       return 'night';
     default:
       return 'night';
@@ -92,6 +89,52 @@ export const getPercentFromTemperature = (temp: number, minTemp: number, maxTemp
   else if (temp > maxTemp) temp = maxTemp;
 
   return Math.round(((temp - minTemp) / (maxTemp - minTemp)) * 100);
+};
+
+export const formatUTCTime = (date: Date) => {
+  const hours = date.getUTCHours().toString().padStart(2, '0');
+  const minutes = date.getUTCMinutes().toString().padStart(2, '0');
+
+  return `${hours}:${minutes}`;
+};
+
+export const formatTime = (date: Date) => {
+  const hours = date.getHours().toString().padStart(2, '0');
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+
+  return `${hours}:${minutes}`;
+};
+
+export const formatSunriseAndSunsetTime = (sunrise: Date, sunset: Date) => {
+  return {
+    sunrise: formatUTCTime(sunrise),
+    sunset: formatUTCTime(sunset),
+  };
+};
+
+export const calculateSunriseAndSunsetDate = (sunriseTimestamp: number, sunsetTimestamp: number, timezoneOffset: number) => {
+  const sunriseDate = new Date((sunriseTimestamp + timezoneOffset) * 1000);
+  const sunsetDate = new Date((sunsetTimestamp + timezoneOffset) * 1000);
+
+  return { sunriseDate, sunsetDate };
+};
+
+export const calculateDaylightHours = (sunriseDate: Date, sunsetDate: Date) => {
+  const sunriseTime = sunriseDate.getUTCHours() + sunriseDate.getUTCMinutes() / 60;
+  const sunsetTime = sunsetDate.getUTCHours() + sunsetDate.getUTCMinutes() / 60;
+  const daylightHours = Math.floor(sunsetTime - sunriseTime);
+  const daylightMinutes = differenceInMinutes(sunsetDate, sunriseDate) % 60;
+
+  return { daylightHours, daylightMinutes, sunriseTime, sunsetTime };
+};
+
+export const calculateIsDay = (sunriseDate: Date, sunsetDate: Date, currentDate: Date) => {
+  const sunriseTime = sunriseDate.getUTCHours() + sunriseDate.getUTCMinutes() / 60;
+  const sunsetTime = sunsetDate.getUTCHours() + sunsetDate.getUTCMinutes() / 60;
+  const currentTime = currentDate.getHours() + currentDate.getMinutes() / 60;
+  const isDay = isWithinInterval(currentTime, { start: sunriseTime, end: sunsetTime });
+
+  return { isDay, sunriseTime, sunsetTime, currentTime };
 };
 
 export const getIconComponent = (name: string): IconComponent => {

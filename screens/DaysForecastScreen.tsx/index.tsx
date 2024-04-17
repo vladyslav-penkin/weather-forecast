@@ -12,7 +12,8 @@ import { useTheme } from '../../hooks/useTheme';
 import { DailyList } from '../../types/DailyList';
 import { DateList as DateListType } from '../../types/DateList';
 import { Forecast } from '../../types/Forecast';
-import { getCurrentTime, dayOfWeek, getDailyList } from '../../units/helpers';
+import { getCurrentTime, dayOfWeek, getDailyList, formatSunriseAndSunsetTime, calculateSunriseAndSunsetDate, calculateDaylightHours, formatTime } from '../../units/helpers';
+import { differenceInMinutes } from 'date-fns';
 
 interface ParamList {
   weatherData: Forecast;
@@ -33,11 +34,15 @@ type NavigationProp = StackNavigationProp<ParamListBase, 'DaysForecastScreen'>;
 export const DaysForecastScreen: FC = () => {
   const route = useRoute<DaysForecastScreenRouteProp>();
   let { weatherData, currentDate, currentIndex = 0 } = route.params;
-  const { t } = useTranslation();
 
   const dailyList: DailyList = useMemo(() => getDailyList(weatherData as Forecast), [weatherData]);
   const dateList: DateListType[] = useMemo(() => Object.entries(dailyList)
-    .filter(([_, list]) => list.some((item) => ['15:00', '3:00 PM'].includes(getCurrentTime(item.dt_txt))))
+    .filter(([_, list]) => list.some((item) => {
+      const hour = new Date(item.dt_txt).getHours().toString().padStart(2, '0');
+      const minute = new Date(item.dt_txt).getMinutes().toString().padStart(2, '0');
+
+      return `${hour}:${minute}` === '15:00';
+    }))
     .map(([date, list]) => ({ 
       date, 
       dayOfWeek: dayOfWeek[new Date(list[0].dt_txt).getDay()],
@@ -47,22 +52,16 @@ export const DaysForecastScreen: FC = () => {
   const isFocused = useIsFocused();
   const navigation: NavigationProp = useNavigation();
   const { theme: { colors }, isDarkTheme } = useTheme();
+  const { t } = useTranslation();
   const scrollRef = useRef<ScrollView>(null);
 
-  const sunriseDate = new Date((weatherData.city.sunrise + weatherData.city.timezone) * 1000);
-  const sunsetDate = new Date((weatherData.city.sunset + weatherData.city.timezone) * 1000);
-  
-  const sunriseTime = sunriseDate.getHours() + sunriseDate.getMinutes() / 60;
-  const sunsetTime = sunsetDate.getHours() + sunsetDate.getMinutes() / 60;
-  
-  const daylightHours = Math.floor(sunsetTime - sunriseTime);
-  const daylightMinutes = Math.round((sunsetTime - sunriseTime - daylightHours) * 60);
-
-  if (weatherData?.list.length === 0) return <DaysForecastScreenSkeleton />;
+  const { sunriseDate, sunsetDate } = calculateSunriseAndSunsetDate(weatherData.city.sunrise, weatherData.city.sunset, weatherData.city.timezone);
+  const { daylightHours, daylightMinutes }  = calculateDaylightHours(sunriseDate, sunsetDate);
+  const { sunrise, sunset } = formatSunriseAndSunsetTime(sunriseDate, sunsetDate);
 
   const dailyInfo = [
-    { title: t('sunrise'), description: getCurrentTime(`${sunriseDate}`), icon: 'sunrise' },
-    { title: t('sunset'), description: getCurrentTime(`${sunsetDate}`), icon: 'sunset' },
+    { title: t('sunrise'), description: sunrise, icon: 'sunrise' },
+    { title: t('sunset'), description: sunset, icon: 'sunset' },
     { title: t('daylight'), description: `${daylightHours} ${t('hour')} ${daylightMinutes} ${t('minute')}`, icon: 'daylight' },
   ];
 
@@ -75,6 +74,8 @@ export const DaysForecastScreen: FC = () => {
   useEffect(() => {
     if (!isFocused) navigation.goBack();
   }, [isFocused]);
+
+  if (weatherData?.list.length === 0) return <DaysForecastScreenSkeleton />;
 
   return (
     <DaysForecastContainer color={isDarkTheme ? colors.bgColor : colors.card}>

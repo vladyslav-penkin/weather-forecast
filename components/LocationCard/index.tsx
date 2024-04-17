@@ -11,7 +11,7 @@ import { LocationIcon } from './LocationIcon';
 import { useTheme } from '../../hooks/useTheme';
 import { useLocations } from '../../hooks/useLocations';
 import { useAnimatedTransition } from '../../hooks/useAnimatedTransition';
-import { getCurrentTime, getFormattedDescription, getWeatherIcon } from '../../units/helpers';
+import { formatTime, getFormattedDescription, getWeatherIcon } from '../../units/helpers';
 import { ForecastListItem } from '../../types/ForecastListItem';
 import { Forecast } from '../../types/Forecast';
 import { EntypoIcons } from '../../types/Icons';
@@ -45,7 +45,7 @@ export const LocationCard: FC<LocationCardProps> = memo(({
   const { theme: { colors } } = useTheme();
   const { locations,  setCurrentLocation, setLocations } = useLocations();
   const navigation: NavigationProp = useNavigation();
-  const currentTime = getCurrentTime(list[0].dt_txt);
+  const currentTime = formatTime(new Date(list[0].dt_txt));
   const isEqual = isOpened === id;
 
   const temperatures = useMemo(() => list.map((temperature: ForecastListItem) => temperature.main.temp), [list]);

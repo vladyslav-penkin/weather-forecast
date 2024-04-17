@@ -1,6 +1,7 @@
 import { FC, memo } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { WeatherContainer, WeatherImageContainer, WeatherInfoContainer, WeatherInfo, TemperatureContainer } from './styles';
+import { format } from 'date-fns';
 import { useTranslation } from 'react-i18next';
 import { BasicCard } from '../../components/BasicCard';
 import { SecondaryText } from '../../components/SecondaryText';
@@ -9,7 +10,7 @@ import { WeatherDetails } from './WeatherDetails';
 import { useSettings } from '../../hooks/useSettings';
 import { useAnimatedDetails } from '../../hooks/useAnimatedDetails';
 import { Forecast } from '../../types/Forecast';
-import { findIcon, getCurrentTime, getFormattedDescription, getIconComponent } from '../../units/helpers';
+import { calculateDaylightHours, calculateIsDay, calculateSunriseAndSunsetDate, findIcon, formatSunriseAndSunsetTime, getFormattedDescription, getIconComponent } from '../../units/helpers';
 
 type Props = {
   weatherData: Forecast;
@@ -20,17 +21,12 @@ export const WeatherCard: FC<Props> = memo(({ weatherData }) => {
   const { settings: { details, degree }, setSettings } = useSettings();
   const currentWeather = weatherData?.list[0];
 
-  const currentTime = new Date(currentWeather?.dt_txt);
-  const currentDate = String(currentTime).split(' ').slice(0, 4).join(' ');
-  const sunriseDate = new Date((weatherData.city.sunrise + weatherData.city.timezone) * 1000);
-  const sunsetDate = new Date((weatherData.city.sunset + weatherData.city.timezone) * 1000);
-
-  const sunriseTime = sunriseDate.getHours() + sunriseDate.getMinutes() / 60;
-  const sunsetTime = sunsetDate.getHours() + sunsetDate.getMinutes() / 60
-  const currentHour = currentTime.getHours() + currentTime.getMinutes() / 60;
-  const daylightHours = Math.floor(sunsetTime - sunriseTime);
-  const daylightMinutes = Math.round((sunsetTime - sunriseTime - daylightHours) * 60);
-  const isDay = currentHour >= sunriseTime && currentHour <= sunsetTime;
+  const currentDate = new Date(currentWeather?.dt_txt);
+  const currentDateTime = format(currentDate, 'eee, MMM dd, yyyy');
+  const { sunriseDate, sunsetDate } = calculateSunriseAndSunsetDate(weatherData.city.sunrise, weatherData.city.sunset, weatherData.city.timezone);
+  const { daylightHours, daylightMinutes } = calculateDaylightHours(sunriseDate, sunsetDate); 
+  const { isDay, sunriseTime, sunsetTime, currentTime } = calculateIsDay(sunriseDate, sunsetDate, currentDate);
+  const { sunrise, sunset } = formatSunriseAndSunsetTime(sunriseDate, sunsetDate);
 
   const wind = Math.round(currentWeather?.wind.speed);
   const feelsLike = Math.round(currentWeather?.main.feels_like);
@@ -42,14 +38,14 @@ export const WeatherCard: FC<Props> = memo(({ weatherData }) => {
   const iconName = findIcon(isDay, currentWeather?.weather[0].id);
   const description = getFormattedDescription(currentWeather.weather[0].description);
 
-  const position = ((((currentHour - sunriseTime) / (sunsetTime - sunriseTime)) * 360) / 2);
+  const position = ((((currentTime - sunriseTime) / (sunsetTime - sunriseTime)) * 360) / 2);
   const sunPosition = position < 0 ? 0 : position;
   const WeatherImage = getIconComponent(iconName);
 
   const daylightDetails = [
-    { type: t('sunrise'), description: getCurrentTime(`${sunriseDate}`) },
+    { type: t('sunrise'), description: sunrise },
     { type: t('daylight'), description: `${daylightHours} ${t('hour')} ${daylightMinutes} ${t('minute')}` },
-    { type: t('sunset'), description: getCurrentTime(`${sunsetDate}`) },
+    { type: t('sunset'), description: sunset },
   ];
 
   const temperatureDetails = [
@@ -70,7 +66,7 @@ export const WeatherCard: FC<Props> = memo(({ weatherData }) => {
       <TouchableOpacity onPress={() => setSettings(prev => ({ ...prev, details: !details }))}>
         <WeatherContainer>
           <WeatherInfoContainer>
-            <SecondaryText title={`${currentDate}`} size={12} />
+            <SecondaryText title={`${currentDateTime}`} size={12} />
 
             <WeatherInfo>
               <TemperatureContainer>

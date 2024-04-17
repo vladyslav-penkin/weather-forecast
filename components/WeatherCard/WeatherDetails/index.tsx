@@ -27,22 +27,23 @@ export const WeatherDetails: FC<Props> = memo(({ isNight, sunPosition, daylightD
   const { theme: { colors } } = useTheme();
   const currentSunPosition = sunPosition <= 10 ? 10 : (sunPosition > 158 ? 158 : sunPosition);
   const [minTemp, maxTemp] = temperatureDetails[1]?.description.split(' ');
+  const daylightColor = isNight ? colors.accentColor : colors.daylightColor;
 
   return (
     <ContainerList style={[animatedStyle]}>
       <View style={{ display: 'flex', flexDirection: 'row', height: 100 }}>
         <WeatherDetailsInfo details={daylightDetails[0]} size={'25%'} />
         <WeatherDetailsInfo details={daylightDetails[1]} size={'50%'}>
-          <DaylightContainer borderColor={isNight ? colors.accentColor : colors.daylightColor}>
+          <DaylightContainer borderColor={daylightColor}>
             {!isNight && (
               <DaylightGradient colors={colors.daylightColors} locations={[0, 1]} start={{ x: 0.5, y: 0.5 }} />
             )}
-            <DaylightPointPosition bgColor={isNight ? colors.accentColor : colors.daylightColor} style={{ left: -5 }} />
-            <DaylightPointPosition bgColor={isNight ? colors.accentColor : colors.daylightColor} style={{ right: -6 }} />
+            <DaylightPointPosition bgColor={daylightColor} style={{ left: -5 }} />
+            <DaylightPointPosition bgColor={daylightColor} style={{ right: -6 }} />
             {!isNight && (
               <SunContainer style={{ transform: [{ rotate: `${currentSunPosition}deg` }]}}>
                 <SunIcon
-                  style={{ position: 'absolute', left: -14, bottom: '50%', maxWidth: 18, maxHeight: 18, borderRadius: 9999 }}
+                  style={{ position: 'absolute', left: 3, bottom: '50%', maxWidth: 18, maxHeight: 18, borderRadius: 9999 }}
                 />
               </SunContainer>
             )}

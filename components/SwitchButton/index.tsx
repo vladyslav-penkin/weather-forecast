@@ -1,6 +1,5 @@
 import { FC, memo, useMemo } from 'react';
 import { Button, SwitchButtonBackground, SwitchButtonText } from './styles';
-import { PrimaryText } from '../../components/PrimaryText';
 import { useTheme } from '../../hooks/useTheme';
 import { useAnimatedSwitch } from '../../hooks/useAnimatedSwitch';
 

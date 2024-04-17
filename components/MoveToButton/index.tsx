@@ -1,6 +1,7 @@
 import { FC, memo } from 'react';
 import { MoveToButtonContainer, MoveToButtonIcon, MoveToButtonIconContainer, MoveToButtonInfo } from './styles';
-import { Ionicons, MaterialIcons } from '@expo/vector-icons';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { PrimaryText } from '../../components/PrimaryText';
 import { useTheme } from '../../hooks/useTheme';
 import { MaterialIcons as Icon, IoniconsIcons } from '../../types/Icons';

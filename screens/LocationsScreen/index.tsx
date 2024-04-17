@@ -2,7 +2,7 @@ import { FC, useEffect, useMemo, useState } from 'react';
 import { LocationScreenContainer } from './styles';
 import { useTranslation } from 'react-i18next';
 import { useIsFocused } from '@react-navigation/native';
-import { getWeatherData } from '../../api/requests';
+import { UNITS_IMPERIAL, UNITS_METRIC, getWeatherData } from '../../api/requests';
 import { Container } from '../../components/Container';
 import { Search } from '../../components/Search';
 import { BasicBanner } from '../../components/BasicBanner';
@@ -20,14 +20,13 @@ export const LocationsScreen: FC = () => {
   const [weatherDataList, setWeatherDataList] = useState<Forecast[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [query, setQuery] = useState<string>('');
-  const [memoizedLocation, setMemoizedLocation] = useState<string>('');
+  // const [memoizedLocation, setMemoizedLocation] = useState<string>('');
   const [isFocused, setFocused] = useState<boolean>(false);
   const [isLoading, setLoading] = useState<boolean>(false);
 
   const { isGeolocationLoading, getGeolocation } = useGeolocation((item) => {
     setQuery(item.city || '');
     setSearchQuery(item.city || '');
-    setMemoizedLocation(item.city || '');
   }); 
   const { t, i18n } = useTranslation();
   const { settings: { degree } } = useSettings();
@@ -35,26 +34,20 @@ export const LocationsScreen: FC = () => {
   const { locations } = useLocations();
   const isScreenFocused = useIsFocused();
 
-  const previousDegree = useMemo(() => degree, [isScreenFocused === false]);
-  const previousLanguage = useMemo(() => i18n.language, [isScreenFocused === false]);
-
-  const fetchData = async (cityId: number) => {
-    const data = await getWeatherData(cityId, i18n.language, degree);
+  const [prevDegree, setPrevDegree] = useState<boolean>(degree);
+  const [prevLanguage, setPrevLanguage] = useState<string>(i18n.language);
+  const isChanged = i18n.language !== prevLanguage || degree !== prevDegree;
+  const isEmptyLocations = !locations.length && !isFocused;
+  const isEmptySearch = !searchQuery.length && isFocused;
+  const fetchData = async (cityId: number, lat: number, lon: number) => {
+    const data = await getWeatherData(cityId, i18n.language, degree ? UNITS_IMPERIAL : UNITS_METRIC, lat, lon);
     return data;
   };
 
-  const setGeolocation = () => {
-    if (memoizedLocation) {
-      setQuery(memoizedLocation);
-      setSearchQuery(memoizedLocation);
-    } else {
-      getGeolocation();
-    }
-  };
   const getLocationData = async () => {
     try {
       setLoading(true);
-      const [...data] = await Promise.all(locations.map((cityId: number) => fetchData(cityId)));
+      const [...data] = await Promise.all(locations.map(({ id, lat, lon }) => fetchData(id, lat, lon)));
       setWeatherDataList(data);
     } catch (error) {
       console.error(error);
@@ -64,18 +57,23 @@ export const LocationsScreen: FC = () => {
   };
 
   useEffect(() => {
+    getLocationData();
+  }, []);
+
+  useEffect(() => {
     if (locations.length === 0) setWeatherDataList([]);
   }, [locations]);
 
   useEffect(() => {
-    if (isScreenFocused) {
+    if (isChanged && isScreenFocused) {
       getLocationData();
+      setPrevDegree(degree);
+      setPrevLanguage(i18n.language);
     }
-  }, [i18n.language !== previousLanguage, degree !== previousDegree]);
-
-  useEffect(() => {
-    setFocused(false);
-  }, [!isScreenFocused]);
+    if (!isScreenFocused) {
+      setFocused(false);
+    }
+  }, [isScreenFocused]);
 
   if (isLoading) return <LocationScreenSkeleton />;
 
@@ -90,25 +88,25 @@ export const LocationsScreen: FC = () => {
           setSearchQuery={setSearchQuery}
         />
         
-        {(locations.length === 0 && !isFocused) && (
+        {isEmptyLocations && (
           <BasicBanner 
-            isOpen={locations.length === 0 && !isFocused}
+            isOpen={isEmptyLocations}
             icon={MaterialIcons.ADDLOCATION}
             iconColor={colors.locationColor}
             title={t('defaultTitle')}
             subtitle={t('defaultSubtitle')}
           />
         )}
-        {(isFocused && !searchQuery.length) && (
+        {isEmptySearch && (
           <BasicBanner 
-            isOpen={isFocused && !searchQuery.length}
+            isOpen={isEmptySearch}
             icon={MaterialIcons.LOCATION}
             iconColor={colors.activeColor}
             title={t('addLocTitle')}
             subtitle={t('addLocSubtitle')}
             buttonText={t('addLocButton')}
             isLoading={isGeolocationLoading}
-            onPress={setGeolocation}
+            onPress={getGeolocation}
           />
         )}
         {!isFocused && (
@@ -123,7 +121,7 @@ export const LocationsScreen: FC = () => {
             searchQuery={searchQuery}
             setFocused={setFocused}
             setWeatherDataList={setWeatherDataList}
-            isFocused={(isFocused && searchQuery.length > 0)}
+            isFocused={searchQuery.length > 0 && isFocused}
           />
         )}
       </Container>

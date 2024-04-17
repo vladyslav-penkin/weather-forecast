@@ -1,12 +1,13 @@
 import i18next from 'i18next';
+import 'intl-pluralrules';
 import { initReactI18next } from 'react-i18next';
-import eng from './translations/eng.json';
+import en from './translations/en.json';
 import ru from './translations/ru.json';
 import uk from './translations/uk.json';
 
 const resources = {
-  eng: {
-    translation: eng,
+  en: {
+    translation: en,
   },
   ru: {
     translation: ru,
@@ -18,8 +19,8 @@ const resources = {
 
 i18next.use(initReactI18next).init({
   debug: true,
-  lng: 'eng', 
-  fallbackLng: 'eng',
+  lng: 'en', 
+  fallbackLng: 'en',
   interpolation: {
     escapeValue: false,
   },

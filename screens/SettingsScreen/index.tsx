@@ -16,6 +16,7 @@ import { useSettings } from '../../hooks/useSettings';
 import { useLocations } from '../../hooks/useLocations';
 import { useAnimatedBackground } from '../../hooks/useAnimatedBackground';
 import { WarningState } from '../../types/WarningState';
+import { SettingsButton as SettingsButtonType } from '../../types/SettingsButton';
 
 type NavigationProp = StackNavigationProp<ParamListBase, 'SettingsScreen'>;
 
@@ -25,70 +26,65 @@ export const SettingsScreen: FC = () => {
   const { setLocations, setCurrentLocation } = useLocations();
   const navigation: NavigationProp = useNavigation();
   const { t, i18n } = useTranslation();
-  const [isOpen, setOpen] = useState<boolean>(false);
   const [dropDownId, setDropDownId] = useState<string>('');
-  const [isToggled, setToggle] = useState<boolean>(isDarkTheme);
+  const [isToggledTheme, setToggleTheme] = useState<boolean>(isDarkTheme);
   const [warning, setWarning] = useState<WarningState>({
     isOpen: false, title: '', buttonTitle: '', onSubmit: () => {}
   });
   const language = t('lang');
 
   const toggleDetails = () => setSettings(prev => ({ ...prev, details: !details }));
+  const clearDropDownId = () => setDropDownId('');
+
   const onPress = () => {
-    setToggle(!isToggled);
+    setToggleTheme(!isToggledTheme);
     toggleTheme();
   };
-  const onDelete = () => {
-    setWarning(prev => ({
-      ...prev,
-      isOpen: true,
-      title: t('clearListWarning'),
-      buttonTitle: t('delete'),
-      onSubmit: () => {
-        setWarning(prev => ({ ...prev, isOpen: false }));
-        setCurrentLocation(null);
-        setLocations([]);
-      },
-    }))
+  const onResetLocations = () => {
+    setWarning(prev => ({ ...prev, isOpen: false }));
+    setCurrentLocation(null);
+    setLocations([]);
   };
-  const onReset = () => {
-    setWarning(prev => ({
-      ...prev,
-      isOpen: true,
-      title: t('resetSettingsWarning'),
-      buttonTitle: t('reset'),
-      onSubmit: () => {
-        setWarning(prev => ({ ...prev, isOpen: false }))
-        setToggle(false);
-        setThemeType('light');
-        setSettings(prev => ({ ...prev, details: false }));
-        i18n.changeLanguage('eng');
-      }
-    }))
+  const onResetSettings = () => {
+    setWarning(prev => ({ ...prev, isOpen: false }))
+    setToggleTheme(false);
+    setThemeType('light');
+    setSettings(prev => ({ ...prev, degree: false, details: false }));
+    i18n.changeLanguage('en');
+  };
+  const onClearListOpen = () => {
+    setWarning(prev => ({ ...prev, isOpen: true, title: t('clearListWarning'), buttonTitle: t('delete'), onSubmit: onResetLocations }));
+  };
+  const onResetSettingsOpen = () => {
+    setWarning(prev => ({ ...prev, isOpen: true, title: t('resetSettingsWarning'), buttonTitle: t('reset'), onSubmit: onResetSettings }));
+  };
+  const onSwitch = () => setSettings(prev => ({ ...prev, degree: !prev.degree }));
+  const onChangeLanguage = (item: string) => {
+    i18n.changeLanguage(item);
+    setSettings(prev => ({ ...prev, lang: item }));
   };
 
-  const dropDownList = [
-    { title: t('eng'), item: 'eng' },
-    { title: t('ru'), item: 'ru' },
-    { title: t('uk'), item: 'uk' }
-  ];
+  const dropDownList = [{ title: t('eng'), item: 'en' }, { title: t('ru'), item: 'ru' }, { title: t('uk'), item: 'uk' }];
   const settingsButtons = [
-    { title: t('aboutApp'), onPress: () => navigation.navigate('AboutApp') },
-    { title: t('clearListLocations'), onPress: onDelete },
-    { title: t('resetSettings'), isWarning: true, onPress: onReset },
+    { title: t('aboutApp'), isWarning: false, onPress: () => navigation.navigate('AboutApp') },
+    { title: t('clearListLocations'), isWarning: false, onPress: onClearListOpen },
+    { title: t('resetSettings'), isWarning: true, onPress: onResetSettingsOpen },
   ];
-
   const animatedStyle = useAnimatedBackground(Boolean(dropDownId));
 
+  const renderItem = ({ item: { title, isWarning, onPress } }: { item: SettingsButtonType }) => (
+    <SettingsButton title={title} isWarning={isWarning} onPress={onPress} />
+  );
+
   return (
-    <TouchableWithoutFeedback onPress={() => setDropDownId('')}>
+    <TouchableWithoutFeedback onPress={clearDropDownId}>
       <SettingsScreenContainer color={colors.bgColor}>
         <SettingsScreenBackground style={animatedStyle} />
         <SettingsCard>
           <SettingsInfo title={t('degrees')}>
             <SwitchButton
               isToggled={degree}
-              onPress={() => setSettings(prev => ({ ...prev, degree: !degree }))}
+              onPress={onSwitch}
               defaultTitle={'°C'}
               activeTitle={'°F'}
             />
@@ -98,7 +94,7 @@ export const SettingsScreen: FC = () => {
         <SettingsCard>
           <SettingsInfo title={t('theme')}>
             <SwitchButton
-              isToggled={isToggled}
+              isToggled={isToggledTheme}
               onPress={onPress}
               defaultTitle={t('light')}
               activeTitle={t('dark')}
@@ -107,10 +103,7 @@ export const SettingsScreen: FC = () => {
           <SettingsInfo title={language}>
             <DropDown
               currentItem={i18n.language}
-              onPress={(item: string) => {
-                i18n.changeLanguage(item);
-                setSettings(prev => ({ ...prev, lang: item }));
-              }}
+              onPress={onChangeLanguage}
               isIncludes={dropDownId === language}
               dropDownId={language}
               setDropDownId={setDropDownId}
@@ -125,11 +118,10 @@ export const SettingsScreen: FC = () => {
         <FlatList
           showsVerticalScrollIndicator={false}
           data={settingsButtons}
-          renderItem={({ item: { title, isWarning, onPress } }) => (
-            <SettingsButton title={title} isWarning={isWarning} onPress={onPress} />
-          )}
+          renderItem={renderItem}
           keyExtractor={(item) => item.title}
         />
+
         <Warning warning={warning} setWarning={setWarning} />
       </SettingsScreenContainer>
     </TouchableWithoutFeedback>

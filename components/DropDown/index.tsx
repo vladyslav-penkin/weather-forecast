@@ -2,7 +2,7 @@ import { FC, memo, useRef } from 'react';
 import { FlatList, TouchableOpacity } from 'react-native';
 import { DropDownContainer, DropDownItem, DropDownItemSelected, DropDownItemText, DropDownList, DropDownText } from './styles';
 import { useTranslation } from 'react-i18next';
-import { Feather } from '@expo/vector-icons';
+import Feather from '@expo/vector-icons/Feather';
 import { useTheme } from '../../hooks/useTheme';
 import { useAnimatedList } from '../../hooks/useAnimatedList';
 import { FeatherIcons } from '../../types/Icons';

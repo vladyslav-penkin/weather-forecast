@@ -21,12 +21,6 @@ export const useGeolocation = (callback: Callback): {
 
       let { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert(
-          'Permission not granted',
-          'Allow the app to use location service.',
-          [{ text: 'OK' }],
-          { cancelable: false }
-        );
         setGrantedPermission(false);
       };
 
@@ -42,12 +36,6 @@ export const useGeolocation = (callback: Callback): {
         response.forEach(callback)
       };
     } catch {
-      Alert.alert(
-        'Can`t load your current geoloation',
-        'Try load again.',
-        [{ text: 'OK' }],
-        { cancelable: false }
-      );
       setGeolocationError(true);
     } finally {
       setGeolocationLoading(false);

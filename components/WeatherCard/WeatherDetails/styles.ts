@@ -9,9 +9,7 @@ export const ContainerList = styled(Animated.View)`
 
 export const DaylightContainer = styled.View<{ borderColor: string }>`
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  min-width: 150px;
   min-height: 75px;
   border-top-left-radius: 9999px;
   border-top-right-radius: 9999px;
@@ -41,8 +39,6 @@ export const DaylightPointPosition = styled.View<{ bgColor: string }>`
 
 export const SunContainer = styled.View`
   position: absolute;
-  left: 0;
-  rigth: 0;
   min-width: 150px;
   min-height: 150px;
   border-radius: 9999px;

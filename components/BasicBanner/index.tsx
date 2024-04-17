@@ -1,6 +1,6 @@
 import { FC, memo } from 'react';
 import { BannerContainer } from './styles';
-import { MaterialIcons } from '@expo/vector-icons';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { PrimaryText } from '../../components/PrimaryText';
 import { SecondaryText } from '../../components/SecondaryText';
 import { BasicButton } from '../../components/BasicButton';
@@ -32,7 +32,7 @@ export const BasicBanner: FC<Props> = memo(({
 }) => {
   const animatedStyle = useAnimatedTransition(isOpen);
   return (
-    <BannerContainer style={[animatedStyle]}>
+    <BannerContainer style={animatedStyle}>
       <MaterialIcons name={icon} size={iconSize} color={iconColor} />
       <PrimaryText style={{ textAlign: 'center' }} title={title} size={18} />
       {subtitle && (

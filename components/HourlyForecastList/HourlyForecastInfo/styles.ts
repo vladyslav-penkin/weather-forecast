@@ -1,6 +1,7 @@
+import Animated from 'react-native-reanimated';
 import styled from 'styled-components/native';
 
-export const StyledView = styled.View`
+export const HourlyForecastInfoContainer = styled(Animated.View)`
   position: relative;
   display: flex;
   flex-direction: column;

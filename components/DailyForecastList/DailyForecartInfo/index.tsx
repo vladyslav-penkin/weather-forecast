@@ -1,11 +1,12 @@
-import { FC, memo, useEffect, useMemo } from 'react';
+import { FC, memo, useMemo } from 'react';
 import { WeatherInfo, Temperature, TemperatureImage, TemperatureContainer, StyledTouchableOpacity, StyledView, AverageTemperature } from './styles';
 import { View } from 'react-native';
-import { useAnimatedStyle, useSharedValue, withDelay, withSpring } from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { SecondaryText } from '../../SecondaryText';
 import { PrimaryText } from '../../PrimaryText';
 import { WeatherIcon } from '../../WeatherIcon';
 import { useTheme } from '../../../hooks/useTheme';
+import { useAnimatedTransition } from '../../../hooks/useAnimatedTransition';
 import { ForecastListItem } from '../../../types/ForecastListItem';
 import { dayOfWeek, getPercentFromTemperature, monthOfYear } from '../../../units/helpers';
 
@@ -14,6 +15,7 @@ type Props = {
   maxTemp: number;
   minTemp: number;
   isDay: boolean;
+  currentIndex: number;
   onPress: () => void;
 };
 
@@ -29,6 +31,7 @@ export const DailyForecastInfo: FC<Props> = memo(({
   maxTemp,
   minTemp,
   isDay,
+  currentIndex,
   onPress,
 }) => {
   const { theme: { colors } } = useTheme();
@@ -47,12 +50,14 @@ export const DailyForecastInfo: FC<Props> = memo(({
     restDisplacementThreshold: 0.01,
     restSpeedThreshold: 0.01,
   };
-  const animatedStyle = useAnimatedStyle(() => ({
-    left: withDelay(300, withSpring(`${positionLeft.value}%`, transitionStyle)),
-  }), [positionLeft]);
+  const animatedPointTemperature = useAnimatedStyle(() => ({
+    left: withSpring(`${positionLeft.value}%`, transitionStyle),
+  }));
+  const animatedStyle = useAnimatedTransition(true, currentIndex);
 
   return (
-    <StyledTouchableOpacity onPress={onPress}>
+    <Animated.View style={animatedStyle}>
+      <StyledTouchableOpacity onPress={onPress}>
       <WeatherIcon iconId={weather[0].id} isDay={isDay} />
       <StyledView>
         <WeatherInfo>
@@ -74,7 +79,7 @@ export const DailyForecastInfo: FC<Props> = memo(({
             />
 
             <AverageTemperature 
-              style={[animatedStyle]} 
+              style={[animatedPointTemperature]} 
               bgColor={colors.primaryColor} 
               borderColor={colors.bgColor}
             />
@@ -82,5 +87,6 @@ export const DailyForecastInfo: FC<Props> = memo(({
         </TemperatureContainer>
       </StyledView>
     </StyledTouchableOpacity>
+    </Animated.View>
   );
 });

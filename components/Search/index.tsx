@@ -45,6 +45,10 @@ export const Search: FC<Props> = memo(({ isFocused, setFocused, query,setQuery, 
   const onChangeQuery = useCallback(debounce((text: string) => {
     setSearchQuery(text);
   }, 2000), [debounce]);
+  const onChangeText = (text: string) => {
+    setQuery(text);
+    onChangeQuery(text);
+  };
 
   useEffect(() => {
     if (isFocused) {
@@ -72,10 +76,7 @@ export const Search: FC<Props> = memo(({ isFocused, setFocused, query,setQuery, 
           color={colors.primaryColor}
           placeholder={t('search')}
           value={query}
-          onChangeText={(text) => {
-            setQuery(text);
-            onChangeQuery(text);
-          }}
+          onChangeText={onChangeText}
           onFocus={() => setFocused(true)}
           placeholderTextColor={colors.secondaryColor}
         />

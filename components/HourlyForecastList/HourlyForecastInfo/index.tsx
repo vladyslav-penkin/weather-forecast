@@ -1,12 +1,12 @@
 import { FC, memo } from 'react';
 import { View } from 'react-native';
-import { ForecastContainer, StyledView } from './styles';
+import { ForecastContainer, HourlyForecastInfoContainer } from './styles';
+import { useTranslation } from 'react-i18next';
 import { SecondaryText } from '../../SecondaryText';
 import { PrimaryText } from '../../PrimaryText';
 import { WeatherIcon } from '../../WeatherIcon';
 import { ForecastListItem } from '../../../types/ForecastListItem';
 import { getCurrentTime, monthOfYear } from '../../../units/helpers';
-import { useTranslation } from 'react-i18next';
 
 type Props = {
   weatherInfo: ForecastListItem;
@@ -20,10 +20,10 @@ export const HourlyForecastInfo: FC<Props> = memo(({ weatherInfo: { dt_txt, weat
   const nearestTime = getCurrentTime(nearestData);
   const currentDate = new Date(dt_txt).getDate();
   const nearestDate = new Date(nearestData).getDate();
-  const isNewDay = currentTime === '00:00'; 
+  const isNewDay = ['00:00', '12:00 AM'].includes(currentTime); 
   const isNow = currentTime === nearestTime && currentDate === nearestDate;
   return (
-    <StyledView>
+    <HourlyForecastInfoContainer>
       <View style={{ minHeight: 20 }}>
         {isNewDay && !isNow && (
           <SecondaryText
@@ -40,6 +40,6 @@ export const HourlyForecastInfo: FC<Props> = memo(({ weatherInfo: { dt_txt, weat
           <PrimaryText title={`${Math.round(temp)}°`} size={16} />
         </View>
       </ForecastContainer>
-    </StyledView>
+    </HourlyForecastInfoContainer>
   );
 });

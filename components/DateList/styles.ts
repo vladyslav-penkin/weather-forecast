@@ -12,8 +12,8 @@ export const DateListContainer = styled.View`
 
 export const DateListAnimatedBox = styled(Animated.View)<{ color: string }>`
   position: absolute;
-  min-width: 45px;
-  min-height: 56px;
+  width: 45px;
+  height: 56px;
   background-color: ${({ color }) => color};
   border-radius: 8px;
   z-index: -1;

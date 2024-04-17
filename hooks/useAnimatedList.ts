@@ -16,7 +16,6 @@ export const useAnimatedList = (isOpen: boolean) => {
     position: 'absolute',
     top: 0,
     right: 0,
-    transformOrigin: { x: 1, y: 0 },
     display: display.value !== 0 ? 'flex' : 'none',
     transform: [
       { scale: withSpring(scale.value, transitionStyle) },

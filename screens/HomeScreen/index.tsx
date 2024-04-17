@@ -1,10 +1,9 @@
-import { FC, useEffect, useMemo, useState } from 'react';
-import { View } from 'react-native';
+import { FC, useEffect, useState } from 'react';
 import { HomeBackground, HomeScreenButtonContainer } from './styles';
 import { useTranslation } from 'react-i18next';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { ParamListBase, useIsFocused, useNavigation } from '@react-navigation/native';
-import { data, getWeatherData } from '../../api/requests';
+import { UNITS_IMPERIAL, UNITS_METRIC, getWeatherData } from '../../api/requests';
 import { Container } from '../../components/Container';
 import { WeatherCard } from '../../components/WeatherCard';
 import { BasicBanner } from '../../components/BasicBanner';
@@ -18,7 +17,6 @@ import { useLocations } from '../../hooks/useLocations';
 import { Forecast } from '../../types/Forecast';
 import { MaterialIcons as Icon, IoniconsIcons } from '../../types/Icons';
 import { CityInfo } from '../../types/CityInfo';
-import { getTwoDigitsTime } from '../../units/helpers';
 
 interface ParamList {
   setShowTemp: React.Dispatch<React.SetStateAction<boolean>>;
@@ -39,9 +37,7 @@ interface Props {
   route: HomeScreenRouteProp;
 }
 
-export const HomeScreen: FC<Props> = ({
-  route: { params: { setShowTemp, setCityInfo } }
-}): JSX.Element => {
+export const HomeScreen: FC<Props> = ({ route: { params: { setShowTemp, setCityInfo } }}): JSX.Element => {
   const [weatherData, setWeatherData] = useState<Forecast | null>(null);
   const { settings: { degree } } = useSettings();
   const isScreenFocused = useIsFocused();
@@ -49,13 +45,14 @@ export const HomeScreen: FC<Props> = ({
   const { currentLocation } = useLocations();
   const { theme: { colors } } = useTheme();
   const navigation: NavigationProp = useNavigation();
-  const [{ isLoading, isError, shouldReload, isEmpty}, setState] = useState({
+  const [{ isLoading, isError, shouldReload, isEmpty }, setState] = useState({
     isLoading: false, isError: false, shouldReload: false, isEmpty: false,
   });
 
   const [scrollPosition, setScrollPosition] = useState<number>(0);
-  const previousDegree = useMemo(() => degree, [isScreenFocused === false]);
-  const previousLanguage = useMemo(() => i18n.language, [isScreenFocused === false]);
+  const [prevDegree, setPrevDegree] = useState<boolean>(degree);
+  const [prevLanguage, setPrevLanguage] = useState<string>(i18n.language);
+  const isChanged = i18n.language !== prevLanguage || degree !== prevDegree;
   const updateState = (newState: object) => {
     setState((prev) => ({ ...prev, ...newState }));
   };
@@ -65,7 +62,7 @@ export const HomeScreen: FC<Props> = ({
     setCityInfo(null);
     try {
       if (currentLocation !== null) {
-        const data = await getWeatherData(currentLocation, i18n.language, degree);
+        const data = await getWeatherData(currentLocation.id, i18n.language, degree ? UNITS_IMPERIAL : UNITS_METRIC, currentLocation.lat, currentLocation.lon);
         setWeatherData(data);
         setCityInfo({ ...data.city, dt_txt: data.list[0].dt_txt, temp: data.list[0].main.temp, weatherId: data.list[0].weather[0].id });
         updateState({ isEmpty: false });
@@ -80,10 +77,12 @@ export const HomeScreen: FC<Props> = ({
   };
 
   useEffect(() => {
-    if (isScreenFocused) {
+    if (isChanged && isScreenFocused) {
       fetchData();
+      setPrevDegree(degree);
+      setPrevLanguage(i18n.language);
     }
-  }, [i18n.language !== previousLanguage, degree !== previousDegree]);
+  }, [isScreenFocused]);
 
   useEffect(() => {
     fetchData();
@@ -108,11 +107,6 @@ export const HomeScreen: FC<Props> = ({
   }, [scrollPosition]);
 
   if (isLoading) return <HomeScreenSkeleton />;
-
-  const sunriseTime = getTwoDigitsTime(`${new Date((weatherData?.city.sunrise ?? 0) * 1000)}`);
-  const sunsetTime = getTwoDigitsTime(`${new Date((weatherData?.city.sunset ?? 0) * 1000)}`);
-  const currentTime = getTwoDigitsTime(`${new Date(weatherData?.list[0].dt_txt ?? '')}`);
-  const isDay = currentTime >= sunriseTime && currentTime <= sunsetTime;
 
   return (
     <HomeBackground
@@ -147,8 +141,8 @@ export const HomeScreen: FC<Props> = ({
         {(!isEmpty && weatherData !== null) && (
           <>
             <WeatherCard weatherData={weatherData} />
-            <HourlyForecastList weatherData={weatherData} isDay={isDay} />
-            <DailyForecastList weatherData={weatherData} isDay={isDay} />
+            <HourlyForecastList weatherData={weatherData} />
+            <DailyForecastList weatherData={weatherData} />
             <HomeScreenButtonContainer borderColor={colors.borderColor}>
               <MoveToButton 
                 icon={IoniconsIcons.CALENDAR} 

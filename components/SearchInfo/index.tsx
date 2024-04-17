@@ -13,22 +13,22 @@ type NavigationProp = StackNavigationProp<ParamListBase, 'Weather'>;
 type Props = {
   cityInfo: SearchForecastListItem;
   setFocused: React.Dispatch<React.SetStateAction<boolean>>;
-  addNewLocation: (cityId: number) => void;
+  addNewLocation: (cityId: number, lan: number, lon: number) => void;
   isFocused: boolean;
   currentIndex: number;
 };
 
-export const SearchInfo: FC<Props> = memo(({ cityInfo: { name, sys: { country }, id }, setFocused, addNewLocation, isFocused, currentIndex }) => {
+export const SearchInfo: FC<Props> = memo(({ cityInfo: { id, name, coord: { lat, lon }, sys: { country } }, setFocused, addNewLocation, isFocused, currentIndex }) => {
   const { setCurrentLocation, setLocations } = useLocations();
   const navigation: NavigationProp = useNavigation();
   const animatedStyle = useAnimatedTransition(isFocused, currentIndex);
 
   const onAdd = () => {
-    setCurrentLocation(id);
+    setCurrentLocation({ id, lat, lon });
     setLocations((prev) => {
-      if (!prev.includes(id)) {
-        addNewLocation(id);
-        return [...prev, id];
+      if (!prev.some(location => location?.id === id)) {
+        addNewLocation(id, lat, lon);
+        return [...prev, { id, lat, lon }];
       } else {
         return prev;
       }

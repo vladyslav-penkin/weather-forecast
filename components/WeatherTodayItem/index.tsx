@@ -1,24 +1,25 @@
 import { FC, memo } from 'react';
-import { FlatList } from 'react-native';
+import { View, FlatList } from 'react-native';
 import { WeatherTodayItemContainer, WeatherImageContainer, StyledView, WeatherTodayTemperatureContainer, TodayTemperatureContainer, WeatherTodayInfoContainer } from './styles';
-import { FontAwesome5 } from '@expo/vector-icons';
+import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import { useTranslation } from 'react-i18next';
 import { SecondaryText } from '../../components/SecondaryText';
 import { PrimaryText } from '../../components/PrimaryText';
 import { WeatherTodayInfo } from '../../components/WeatherTodayItem/WeatherTodayInfo';
 import { useTheme } from '../../hooks/useTheme';
+import { useAnimatedItem } from '../../hooks/useAnimatedItem';
 import { ForecastListItem } from '../../types/ForecastListItem';
 import { FontAwesomeIcons, IoniconsIcons } from '../../types/Icons';
 import { getFormattedDescription, getWeatherIcon } from '../../units/helpers';
-import { View } from 'react-native';
 
 type Props = {
   weatherInfo: ForecastListItem;
+  currentIndex: number;
   dayType: string;
   isDay: boolean;
 }
 
-export const WeatherTodayItem: FC<Props> = memo(({ weatherInfo, dayType, isDay }) => {
+export const WeatherTodayItem: FC<Props> = memo(({ weatherInfo, currentIndex, dayType, isDay }) => {
   const { theme: { colors } } = useTheme();
   const { t } = useTranslation();
   const description = getFormattedDescription(weatherInfo.weather[0].description);
@@ -32,9 +33,10 @@ export const WeatherTodayItem: FC<Props> = memo(({ weatherInfo, dayType, isDay }
     { title: `${Math.round(weatherInfo.main.humidity)}%`, icon: IoniconsIcons.HUMIDITY, size: 14, color: colors.humidityColor }
   ];
   const WeatherImage = getWeatherIcon(isDay, weatherInfo.weather[0].id);
+  const animatedStyle = useAnimatedItem(currentIndex);
 
   return (
-    <WeatherTodayItemContainer color={colors.borderColor}>
+    <WeatherTodayItemContainer style={animatedStyle} color={colors.borderColor}>
       <SecondaryText title={t(dayType)} size={14} />
 
       <WeatherTodayTemperatureContainer>

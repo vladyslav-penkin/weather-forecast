@@ -2,7 +2,6 @@ import { FC, memo, useState } from 'react';
 import { FlatList } from 'react-native';
 import { Forecast } from '../../types/Forecast';
 import { LocationCard } from '../../components/LocationCard';
-import { getTwoDigitsTime } from '../../units/helpers';
 
 type Props = {
   locations: Forecast[];
@@ -14,10 +13,15 @@ export const LocationList: FC<Props> = memo(({ locations, isFocused, setWeatherD
   const [isOpened, setOpened] = useState<number | null>(null);
 
   const renderItem = ({ item, index }: { item: Forecast, index: number } ) => {
-    const sunriseTime = getTwoDigitsTime(`${new Date(item.city.sunrise * 1000)}`);
-    const sunsetTime = getTwoDigitsTime(`${new Date(item.city.sunset * 1000)}`);
-    const currentTime = getTwoDigitsTime(`${new Date(item.list[0].dt_txt)}`);
-    const isDay = currentTime >= sunriseTime && currentTime <= sunsetTime;
+    const currentTime = new Date(item?.list[0]?.dt_txt);
+    const sunriseDate = new Date((item.city.sunrise + item.city.timezone) * 1000);
+    const sunsetDate = new Date((item.city.sunset + item.city.timezone) * 1000);
+  
+    const sunriseTime = sunriseDate.getHours() + sunriseDate.getMinutes() / 60;
+    const sunsetTime = sunsetDate.getHours() + sunsetDate.getMinutes() / 60
+    const currentHour = currentTime.getHours() + currentTime.getMinutes() / 60;
+    const isDay = currentHour >= sunriseTime && currentHour <= sunsetTime;
+  
     return (
       <LocationCard 
         key={item.city.id}

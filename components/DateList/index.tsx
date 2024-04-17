@@ -18,22 +18,21 @@ export const DateList: FC<Props> = memo(({ dateList, selectedDate, setSelectedDa
 
   const dateCardWidth = 45;
   const dateCardGap = 10;
-  const translateX = useSharedValue(currentIndex * (dateCardWidth + dateCardGap));
+  const positionLeft = useSharedValue((currentIndex * (dateCardWidth + dateCardGap)) || 0);
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: withSpring(translateX.value, {
+    left: withSpring(positionLeft.value, {
       duration: 1000,
       dampingRatio: 1,
       stiffness: 100,
       overshootClamping: false,
       restDisplacementThreshold: 0.01,
       restSpeedThreshold: 0.01,
-    })}]
-  }), [translateX.value]);
+    }),
+  }), [positionLeft.value]);
 
   const handlePress = (date: string, index: number, value: number, gap: number) => {
     setSelectedDate(date);
-    const result = index * (value + gap);
-    translateX.value = result;
+    positionLeft.value = index * (value + gap);
   };
 
   const dateListItem = ({ item: { date, dayOfWeek }, index }: { item: DateListType, index: number }) => {

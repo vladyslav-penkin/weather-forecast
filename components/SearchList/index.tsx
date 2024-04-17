@@ -1,7 +1,7 @@
 import { FC, memo, useState } from 'react';
 import { FlatList } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { getWeatherData, getWeatherSearchList } from '../../api/requests';
+import { UNITS_IMPERIAL, UNITS_METRIC, getWeatherData, getWeatherSearchList } from '../../api/requests';
 import { SearchInfo } from '../../components/SearchInfo';
 import { SearchListSkeleton } from '../../components/SearchListSkeleton';
 import { BasicBanner } from '../../components/BasicBanner';
@@ -32,8 +32,8 @@ export const SearchList: FC<Props> = memo(({ searchQuery, isFocused, setFocused,
 
   const isEmpty = citiesData?.list.length === 0;
   const isFound = !isError && !isEmpty;
-  const addNewLocation = async (cityId: number) => {
-    const newLocation = await getWeatherData(cityId, i18n.language, degree);
+  const addNewLocation = async (cityId: number, lan: number, lon: number) => {
+    const newLocation = await getWeatherData(cityId, i18n.language, degree ? UNITS_IMPERIAL : UNITS_METRIC, lan, lon);
     setWeatherDataList(prev => [...prev, newLocation]);
   };
 
@@ -41,13 +41,13 @@ export const SearchList: FC<Props> = memo(({ searchQuery, isFocused, setFocused,
 
   const banners = [
     { 
-      isOpen: isError && isFocused,
+      isOpen: isError && isEmpty && isFocused,
       icon: MaterialIcons.ERROR,
       iconColor: colors.activeColor,
       title: t('errorTitle'),
     },
     { 
-      isOpen: isEmpty && isFocused,
+      isOpen: isEmpty && !isError && isFocused,
       icon: MaterialIcons.EMPTY,
       iconColor: colors.activeColor,
       title: t('notFoundTitle'),
@@ -72,10 +72,10 @@ export const SearchList: FC<Props> = memo(({ searchQuery, isFocused, setFocused,
         <FlatList
           style={{ marginTop: 20 }}
           showsVerticalScrollIndicator={false}
-          data={citiesData?.list as SearchForecastListItem[]}
+          data={citiesData?.list}
           renderItem={({ item, index }) => (
             <SearchInfo
-              cityInfo={item as SearchForecastListItem}
+              cityInfo={item}
               setFocused={setFocused}
               addNewLocation={addNewLocation}
               isFocused={isFocused}

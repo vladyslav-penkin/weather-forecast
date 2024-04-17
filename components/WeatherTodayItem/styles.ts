@@ -1,3 +1,4 @@
+import Animated from 'react-native-reanimated';
 import styled from 'styled-components/native';
 
 export const WeatherTodayTemperatureContainer = styled.View`
@@ -15,7 +16,7 @@ export const TodayTemperatureContainer = styled.View`
   gap: 10px;
 `;
 
-export const WeatherTodayItemContainer = styled.View<{ color: string }>`
+export const WeatherTodayItemContainer = styled(Animated.View)<{ color: string }>`
   dispay: flex;
   padding: 0 24px 16px 24px;
   margin: 0 0 16px 0;

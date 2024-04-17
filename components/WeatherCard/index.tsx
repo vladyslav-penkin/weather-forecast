@@ -1,4 +1,4 @@
-import React, { FC, memo, useEffect, useState } from 'react';
+import { FC, memo } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { WeatherContainer, WeatherImageContainer, WeatherInfoContainer, WeatherInfo, TemperatureContainer } from './styles';
 import { useTranslation } from 'react-i18next';
@@ -7,9 +7,9 @@ import { SecondaryText } from '../../components/SecondaryText';
 import { PrimaryText } from '../../components/PrimaryText';
 import { WeatherDetails } from './WeatherDetails';
 import { useSettings } from '../../hooks/useSettings';
-import { useAnimatedCard } from '../../hooks/useAnimatedCard';
+import { useAnimatedDetails } from '../../hooks/useAnimatedDetails';
 import { Forecast } from '../../types/Forecast';
-import { findIcon, getCurrentTime, getFormattedDescription, getIconComponent, getTwoDigitsTime } from '../../units/helpers';
+import { findIcon, getCurrentTime, getFormattedDescription, getIconComponent } from '../../units/helpers';
 
 type Props = {
   weatherData: Forecast;
@@ -19,15 +19,18 @@ export const WeatherCard: FC<Props> = memo(({ weatherData }) => {
   const { t } = useTranslation();
   const { settings: { details, degree }, setSettings } = useSettings();
   const currentWeather = weatherData?.list[0];
-  const currentTime = `${new Date(currentWeather?.dt_txt)}`;
-  const sunsetTime = getTwoDigitsTime(`${new Date(weatherData.city.sunset * 1000)}`);
-  const sunriseTime = getTwoDigitsTime(`${new Date(weatherData.city.sunrise * 1000)}`);
-  const currentDayTime = getTwoDigitsTime(`${currentTime}`);
-  const currentDate = currentTime.split(' ').slice(0, 4).join(' ');
-  const isDay = currentDayTime >= sunriseTime && currentDayTime <= sunsetTime;
-  const [daylightHours, daylightMinutes] = (sunsetTime - sunriseTime).toFixed(2).split('.');
-  const sunriseDate = getCurrentTime(`${new Date(weatherData.city.sunrise * 1000)}`);
-  const sunsetDate = getCurrentTime(`${new Date(weatherData.city.sunset * 1000)}`);
+
+  const currentTime = new Date(currentWeather?.dt_txt);
+  const currentDate = String(currentTime).split(' ').slice(0, 4).join(' ');
+  const sunriseDate = new Date((weatherData.city.sunrise + weatherData.city.timezone) * 1000);
+  const sunsetDate = new Date((weatherData.city.sunset + weatherData.city.timezone) * 1000);
+
+  const sunriseTime = sunriseDate.getHours() + sunriseDate.getMinutes() / 60;
+  const sunsetTime = sunsetDate.getHours() + sunsetDate.getMinutes() / 60
+  const currentHour = currentTime.getHours() + currentTime.getMinutes() / 60;
+  const daylightHours = Math.floor(sunsetTime - sunriseTime);
+  const daylightMinutes = Math.round((sunsetTime - sunriseTime - daylightHours) * 60);
+  const isDay = currentHour >= sunriseTime && currentHour <= sunsetTime;
 
   const wind = Math.round(currentWeather?.wind.speed);
   const feelsLike = Math.round(currentWeather?.main.feels_like);
@@ -39,14 +42,14 @@ export const WeatherCard: FC<Props> = memo(({ weatherData }) => {
   const iconName = findIcon(isDay, currentWeather?.weather[0].id);
   const description = getFormattedDescription(currentWeather.weather[0].description);
 
-  const position = ((((currentDayTime - sunriseTime) / (sunsetTime - sunriseTime)) * 360) / 2);
+  const position = ((((currentHour - sunriseTime) / (sunsetTime - sunriseTime)) * 360) / 2);
   const sunPosition = position < 0 ? 0 : position;
   const WeatherImage = getIconComponent(iconName);
 
   const daylightDetails = [
-    { type: t('sunrise'), description: `${sunriseDate}` },
+    { type: t('sunrise'), description: getCurrentTime(`${sunriseDate}`) },
     { type: t('daylight'), description: `${daylightHours} ${t('hour')} ${daylightMinutes} ${t('minute')}` },
-    { type: t('sunset'), description: `${sunsetDate}` },
+    { type: t('sunset'), description: getCurrentTime(`${sunsetDate}`) },
   ];
 
   const temperatureDetails = [
@@ -60,14 +63,11 @@ export const WeatherCard: FC<Props> = memo(({ weatherData }) => {
     { type: t('pressure'), description: `${currentWeather?.main.pressure} ${t('mmHg')}` },
     { type: t('wind'), description: `${wind} ${t('m/s')}` },
   ];
-
-  const animatedStyle = useAnimatedCard(details);
+  const animatedStyle = useAnimatedDetails(details);
 
   return (
     <BasicCard>
-      <TouchableOpacity onPress={() => {
-        setSettings(prev => ({ ...prev, details: !details }));
-      }}>
+      <TouchableOpacity onPress={() => setSettings(prev => ({ ...prev, details: !details }))}>
         <WeatherContainer>
           <WeatherInfoContainer>
             <SecondaryText title={`${currentDate}`} size={12} />

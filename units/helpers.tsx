@@ -57,12 +57,16 @@ export const getDailyList = (weatherData: Forecast): DailyList => {
 export const getCurrentTypeOfDay = (currentTime: string) => {
   switch (currentTime) {
     case '09:00':
+    case '9:00 AM':
       return 'morning';
     case '15:00':
+    case '3:00 PM':
       return 'afternoon';
     case '18:00':
+    case '6:00 PM':
       return 'evening';
     case '21:00':
+    case '9:00 PM':
       return 'night';
     default:
       return 'night';

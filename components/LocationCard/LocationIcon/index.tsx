@@ -1,7 +1,7 @@
 import { FC, memo, useState } from 'react';
 import { Pressable } from 'react-native';
 import { LocationIconContainer } from './styles';
-import { Entypo } from '@expo/vector-icons';
+import Entypo from '@expo/vector-icons/Entypo';
 import { EntypoIcons } from '../../../types/Icons';
 import { useAnimatedPress } from '../../../hooks/useAnimatedPress';
 

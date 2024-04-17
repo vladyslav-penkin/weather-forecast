@@ -9,11 +9,11 @@ import { HomeScreen } from '../../screens/HomeScreen';
 import { DaysForecastScreen } from '../../screens/DaysForecastScreen.tsx';
 import { useTheme } from '../../hooks/useTheme';
 import { useSettings } from '../../hooks/useSettings';
-import { useAnimatedOpacity } from '../../hooks/useAnimatedOpacity';
 import { useGeolocation } from '../../hooks/useGeolocation';
 import { CityInfo } from '../../types/CityInfo';
 import { MaterialIcons as Icon } from '../../types/Icons'; 
-import { getTwoDigitsTime, getWeatherIcon } from '../../units/helpers';
+import { getWeatherIcon } from '../../units/helpers';
+import { FadeIn } from 'react-native-reanimated';
 
 const Stack = createNativeStackNavigator();
 
@@ -36,20 +36,19 @@ export const HomeStack: FC = () => {
   const { t } = useTranslation();
   const toggleOpen = () => setSettings(prev => ({ ...prev, details: !details }));
 
-  const sunriseTime = useMemo(() => getTwoDigitsTime(`${new Date((cityInfo?.sunrise ?? 0) * 1000)}`), [cityInfo]);
-  const sunsetTime = useMemo(() => getTwoDigitsTime(`${new Date((cityInfo?.sunset ?? 0) * 1000)}`), [cityInfo]);
-  const currentTime = useMemo(() => getTwoDigitsTime(`${new Date(cityInfo?.dt_txt ?? 0)}`), [cityInfo]);
-  const isDay = useMemo(() => currentTime >= sunriseTime && currentTime <= sunsetTime, [cityInfo]);
+  const sunriseDate = new Date((cityInfo?.sunrise ?? 0) * 1000);
+  const sunsetDate = new Date((cityInfo?.sunset ?? 0) * 1000);
+  
+  const sunriseTime = sunriseDate.getHours() + sunriseDate.getMinutes() / 60;
+  const sunsetTime = sunsetDate.getHours() + sunsetDate.getMinutes() / 60;
+  const currentTime = new Date(cityInfo?.dt_txt ?? 0);
+  const currentHour = currentTime.getHours() + currentTime.getMinutes() / 60;
+  const isDay = currentHour >= sunriseTime && currentHour <= sunsetTime;
   
   const WeatherIcon = getWeatherIcon(isDay, cityInfo?.weatherId || 0);
 
-  const animatedStyle = useAnimatedOpacity(showTemp);
-  const animatedShowStyle = useAnimatedOpacity(!showTemp);
-
   useEffect(() => {
-    if (!memoizedLocation) {
-      getGeolocation();
-    }
+    getGeolocation();
     setShowTemp(false);
   }, [cityInfo]);
 
@@ -75,13 +74,13 @@ export const HomeStack: FC = () => {
           ),
           headerRight: () => (
             showTemp ? (
-              <HomeStackTempContainer style={animatedStyle}>
+              <HomeStackTempContainer entering={FadeIn}>
                 <PrimaryText title={`${Math.round(cityInfo?.temp || 0)}°`} size={16} />
                 <WeatherIcon style={{ maxWidth: 45, maxHeight: 45 }} />
               </HomeStackTempContainer>
             ) : (
 
-              <HomeStackDetailsContainer style={animatedShowStyle}>
+              <HomeStackDetailsContainer entering={FadeIn}>
                 <HomeStackDetailsButton onPress={toggleOpen}>
                   <SecondaryText title={t(details ? 'showLess' : 'showMore')} />
                   <MaterialIcons 

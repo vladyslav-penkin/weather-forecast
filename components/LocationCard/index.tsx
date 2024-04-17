@@ -8,13 +8,13 @@ import { BasicCard } from '../../components/BasicCard';
 import { PrimaryText } from '../../components/PrimaryText';
 import { SecondaryText } from '../../components/SecondaryText';
 import { LocationIcon } from './LocationIcon';
+import { useTheme } from '../../hooks/useTheme';
+import { useLocations } from '../../hooks/useLocations';
+import { useAnimatedTransition } from '../../hooks/useAnimatedTransition';
 import { getCurrentTime, getFormattedDescription, getWeatherIcon } from '../../units/helpers';
 import { ForecastListItem } from '../../types/ForecastListItem';
 import { Forecast } from '../../types/Forecast';
 import { EntypoIcons } from '../../types/Icons';
-import { useTheme } from '../../hooks/useTheme';
-import { useLocations } from '../../hooks/useLocations';
-import { useAnimatedTransition } from '../../hooks/useAnimatedTransition';
 
 type NavigationProp = StackNavigationProp<ParamListBase, 'Weather'>;
 interface LocationCardProps {
@@ -38,12 +38,12 @@ export const LocationCard: FC<LocationCardProps> = memo(({
   isOpened, 
   setOpened, 
   setWeatherDataList,
-  weatherInfo: { list, city: { id, name } }, 
+  weatherInfo: { list, city: { id, name, coord: { lat, lon } } }, 
   currentIndex,
   isDay,
 }) => {
   const { theme: { colors } } = useTheme();
-  const { locations, currentLocation, setCurrentLocation, setLocations } = useLocations();
+  const { locations,  setCurrentLocation, setLocations } = useLocations();
   const navigation: NavigationProp = useNavigation();
   const currentTime = getCurrentTime(list[0].dt_txt);
   const isEqual = isOpened === id;
@@ -55,16 +55,17 @@ export const LocationCard: FC<LocationCardProps> = memo(({
 
   const onOpen = () => setOpened(isEqual ? null : id);
   const onPress = () => {
+    const newLocation = { id: id, lat, lon };
     setOpened(null);
-    setCurrentLocation(id);
+    setCurrentLocation(prev => prev?.id !== newLocation.id ? newLocation : prev);
     navigation.navigate('Weather');
   };
   const onRemove = async () => {
     setOpened(null);
     setWeatherDataList(prev => prev.filter(({ city }) => city.id !== id));
-    const newLocations = locations.filter((locationId: number) => locationId !== id);
+    const newLocations = locations.filter((location) => location?.id !== id);
     setLocations(newLocations);
-    setCurrentLocation(newLocations.length > 0 ? newLocations[0] : null);
+    setCurrentLocation(newLocations.length > 0 ? { id: newLocations[0].id, lat: newLocations[0].lat, lon: newLocations[0].lon } : null);
   };
   const locationIcons = [
     { onPress: onPress, icon: EntypoIcons.LOCATION, size: 24, bgColor: colors.locationColor, color: 'white' },
